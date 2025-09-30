@@ -142,3 +142,59 @@ class Consulta(models.Model):
         # Acessamos o nome do usuário com 'username' ou 'get_full_name()'
         vet_nome = self.veterinario.get_full_name() if self.veterinario else "A definir"
         return f"Consulta de {self.animal.nome} com Dr(a). {vet_nome} em {self.data.strftime('%d/%m/%Y às %H:%M')}"
+    
+# NOVO MODELO PARA OS TURNOS (Critério de Aceite 3 e 6)
+class Turno(models.Model):
+    """
+    Representa um turno de trabalho padrão, com nome, hora de início e fim.
+    Ex: Manhã (08:00 - 12:00)
+    """
+    nome = models.CharField(max_length=50, unique=True, help_text="Ex: Manhã, Tarde, Plantão Noturno")
+    hora_inicio = models.TimeField()
+    hora_fim = models.TimeField()
+
+    def __str__(self):
+        # Formata a hora para exibir sem os segundos
+        return f"{self.nome} ({self.hora_inicio.strftime('%H:%M')} - {self.hora_fim.strftime('%H:%M')})"
+
+    class Meta:
+        verbose_name = "Turno"
+        verbose_name_plural = "Turnos"
+        ordering = ['hora_inicio']
+
+
+# NOVO MODELO PARA A AGENDA DE TRABALHO (Critério de Aceite 1, 2 e 4)
+class HorarioTrabalho(models.Model):
+    """
+    Associa um veterinário a um turno em um dia específico da semana.
+    """
+    DIAS_SEMANA = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    # ForeignKey para o funcionário. Limitamos a escolha para usuários que pertencem ao grupo 'Veterinarios'
+    veterinario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='horarios_trabalho',
+        limit_choices_to={'groups__name': 'Veterinarios'}
+    )
+    dia_semana = models.IntegerField(choices=DIAS_SEMANA)
+    turno = models.ForeignKey(Turno, on_delete=models.CASCADE)
+
+    def __str__(self):
+        # O get_dia_semana_display() pega o nome do dia (ex: 'Segunda-feira') em vez do número (0)
+        return f"{self.veterinario.get_full_name()} - {self.get_dia_semana_display()} - {self.turno.nome}"
+
+    class Meta:
+        verbose_name = "Horário de Trabalho"
+        verbose_name_plural = "Horários de Trabalho"
+        # Garante que não é possível cadastrar o mesmo turno, no mesmo dia, para o mesmo veterinário duas vezes
+        unique_together = ('veterinario', 'dia_semana', 'turno')
+        ordering = ['veterinario', 'dia_semana', 'turno__hora_inicio']
