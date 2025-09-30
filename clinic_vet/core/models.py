@@ -2,16 +2,14 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-# isso aqui sao basicamente tabelas de Sql antes de virarem algo, tipo aqueles construtores em Java
-# ou até mesmo os Structs do C, mas mais pro Java com toda certeza 
+
+from datetime import date #Para poder fazer o calculo da idade dos usuarios, clientes e animais
 
 # Este modelo agora gerencia logins e senhas de forma segura
-
 # Parte dos funcionarios
 class Usuario(AbstractUser):
     # O AbstractUser já fornece os campos:
     # username, password (seguro, com hash), email, first_name, last_name, is_staff, etc.
-
     SEXO = [
         ('M', 'Masculino'),
         ('F', 'Feminino'),
@@ -23,6 +21,19 @@ class Usuario(AbstractUser):
     data_nascimento = models.DateField(null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
     endereco = models.TextField(blank=True, null=True)
+    
+    @property
+    def idade(self):
+        #Se não tiver data de nascimento, retorna 0
+        if not self.data_nascimento:
+            return 0
+        
+        #Calculo mirabolante para calcular a idade
+        hoje = date.today()
+        idade_calculada = hoje.year - self.data_nascimento.year -(
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+            )
+        return idade_calculada
     
     def __str__(self):
         return self.username
@@ -50,8 +61,19 @@ class Cliente(models.Model):
     data_nascimento = models.DateField(null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
     estado_civil = models.CharField(max_length=1, choices=ESTADO_CIVIL)
-    endereco = models.TextField()
-    
+    endereco = models.TextField(blank=True)
+
+    @property
+    def idade(self):
+        if not self.data_nascimento:
+            return 0
+                
+        hoje = date.today()
+        idade_calculada = hoje.year - self.data_nascimento.year -(
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+            )
+        return idade_calculada
+
     def __str__(self):
         return self.nome
     
@@ -75,6 +97,18 @@ class Animal(models.Model):
     data_nascimento = models.DateField(null=True, blank=True)
     peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
+    observacoes = models.TextField(blank=True)
+
+    @property
+    def idade(self):
+        if not self.data_nascimento:
+            return 0
+                
+        hoje = date.today()
+        idade_calculada = hoje.year - self.data_nascimento.year -(
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+            )
+        return idade_calculada
 
     def __str__(self):
         return f"{self.nome} ({self.especie})"

@@ -11,14 +11,21 @@ from .models import Usuario, Cliente, Animal, Consulta
 # Esta classe customiza como seu modelo Usuario aparece na área de admin
 
 class UsuarioAdmin(UserAdmin):
-    # Adicione seus campos extras para que apareçam na tela de edição do admin
+    # (Opcional) Mostra a idade na lista de usuários
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'idade')
+
+    # Mostra a idade como um campo não editável na página de edição
+    readonly_fields = ('idade',)
+
+    # CORREÇÃO: Remova 'idade' daqui, pois não é um campo editável
     fieldsets = UserAdmin.fieldsets + (
-        ('Informações Adicionais', {'fields': ('cpf', 'telefone','data_nascimento', 'sexo', 'endereco')}),
-    )
-    add_fieldsets = UserAdmin.add_fieldsets + (
         ('Informações Adicionais', {'fields': ('cpf', 'telefone', 'data_nascimento', 'sexo', 'endereco')}),
     )
-
+    
+    # E daqui também
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ('Informações Adicionais', {'fields': ('first_name', 'last_name', 'email', 'cpf', 'telefone', 'data_nascimento', 'sexo', 'endereco')}),
+    )
 # Registre seus modelos para que apareçam na área de admin
 admin.site.register(Usuario, UsuarioAdmin)
 admin.site.register(Cliente)
