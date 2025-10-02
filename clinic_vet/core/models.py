@@ -16,11 +16,11 @@ class Usuario(AbstractUser):
         ('O', 'Outros'),
     ]
     
-    cpf = models.CharField(max_length=11, unique=True, blank=True, null=True)
+    cpf = models.CharField(max_length=11, unique=True, blank=False, null=False)
     telefone = models.CharField(max_length=15)
-    data_nascimento = models.DateField(null=True, blank=True)
+    data_nascimento = models.DateField(null=False, blank=False)
     sexo = models.CharField(max_length=1, choices=SEXO)
-    endereco = models.TextField(blank=True, null=True)
+    endereco = models.TextField(blank=False, null=False)
     
     @property
     def idade(self):
@@ -56,12 +56,12 @@ class Cliente(models.Model):
     
     nome = models.CharField(max_length=100)
     email = models.EmailField()
-    cpf = models.CharField(max_length=11, blank=True, null=True)
+    cpf = models.CharField(max_length=11, blank=False, null=False)
     telefone = models.CharField(max_length=15)
-    data_nascimento = models.DateField(null=True, blank=True)
+    data_nascimento = models.DateField(null=False, blank=False)
     sexo = models.CharField(max_length=1, choices=SEXO)
     estado_civil = models.CharField(max_length=1, choices=ESTADO_CIVIL)
-    endereco = models.TextField(blank=True)
+    endereco = models.TextField(blank=False, null=False)
 
     @property
     def idade(self):
@@ -91,7 +91,7 @@ class Animal(models.Model):
     ]
     
     nome = models.CharField(max_length=100)
-    dono = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='animais', null=True, blank=True)
+    dono = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='animais', blank=False, null=False)
     especie = models.CharField(max_length=1, choices=ESPECIES)
     raca = models.CharField(max_length=100)
     data_nascimento = models.DateField(null=True, blank=True)
@@ -124,8 +124,8 @@ class Consulta(models.Model):
         limit_choices_to={'groups__name' : 'Veterinarios'} 
     )
 
-    data = models.DateTimeField(null=True, blank=True)
-    motivo = models.TextField()
+    data = models.DateTimeField(blank=False, null=False)
+    motivo = models.TextField(blank=False, null=False)
     observacoes = models.TextField(blank=True)
 
     def clean(self):

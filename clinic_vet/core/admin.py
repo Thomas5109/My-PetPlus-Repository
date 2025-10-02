@@ -2,16 +2,37 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Usuario, Cliente, Animal, Consulta, Turno, HorarioTrabalho
 
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
 # --- Ações customizadas para Ativar/Desativar ---
 @admin.action(description="Ativar usuários selecionados")
 def ativar_usuarios(modeladmin, request, queryset):
     """Ação para ativar múltiplos usuários de uma vez."""
-    queryset.update(is_active=True)
+    updated_count = queryset.update(is_active=True)
+    # Adiciona a mensagem de sucesso para o admin
+    modeladmin.message_user(request, f"{updated_count} usuários foram ativados com sucesso.")
 
 @admin.action(description="Desativar usuários selecionados")
 def desativar_usuarios(modeladmin, request, queryset):
     """Ação para desativar múltiplos usuários de uma vez."""
-    queryset.update(is_active=False)
+
+    if 'post' in request.POST:
+        # O usuário confirmou, então execute a ação
+        updated_count = queryset.update(is_active=False)
+        modeladmin.message_user(request, f"{updated_count} usuários foram desativados com sucesso.")
+        # Retorne None para que o Django redirecione de volta para a lista
+        return None
+
+    # Se ainda não foi confirmado, mostre a página de confirmação
+    context = {
+        'queryset': queryset,
+        'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+        'title': 'Confirmar Desativação',
+    }
+    return render(request, 'admin/core/acao_confirmar_desativacao.html', context)
+
 
 # Inline para gerenciar os horários de trabalho (mantido da US-04)
 class HorarioTrabalhoInline(admin.TabularInline):
