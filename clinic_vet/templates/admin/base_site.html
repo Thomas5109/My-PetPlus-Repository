@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://unpkg.com/imask"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[data-mask]').forEach(function(element) {
+      new IMask(element, {
+        mask: element.getAttribute('data-mask')
+      });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Encontra o checkbox 'Ativo' pelo seu ID padrão do Django
+    const activeCheckbox = document.getElementById('id_is_active');
+
+    // Garante que o script só rode se o checkbox existir na página
+    if (activeCheckbox) {
+      // Adiciona um 'ouvinte' para o evento de clique
+      activeCheckbox.addEventListener('click', function(event) {
+        // Se o checkbox está sendo DESMARCADO...
+        if (!this.checked) {
+          // Mostra uma caixa de diálogo de confirmação
+          const userConfirmed = confirm(
+            'Você tem certeza que deseja DESATIVAR este usuário?\n\nEle não poderá mais acessar o sistema.'
+          );
+
+          // Se o usuário clicar em "Cancelar", a ação é prevenida
+          if (!userConfirmed) {
+            event.preventDefault();
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
