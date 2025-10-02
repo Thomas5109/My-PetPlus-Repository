@@ -1,0 +1,18 @@
+Foi adicionado um validador de CPF, para garantir a integridade dos dados, por meio de uma biblioteca chamada "validate_docbr".    
+
+Vamos implementar as duas coisas.
+
+Dividiremos a tarefa em duas partes:
+
+Validação de CPF (Back-end): Faremos com que o sistema recuse CPFs inválidos ao tentar salvar um usuário ou cliente.
+
+Máscaras de Formulário (Front-end): Faremos com que os campos de CPF e Telefone apareçam com o formato ___.___.___-__ e (__) _____-____ no painel de administração, para guiar a digitação.
+
+Validação de CPF:
+Instale a Biblioteca de Validação
+No seu terminal, com o ambiente virtual ativado, instale a biblioteca validate_docbr:
+
+pip install validate_docbr
+
+Os arquivos Validadores:
+O arquivo chamado validators.py dentro da pasta "core" mantem o código de validação organizado.
