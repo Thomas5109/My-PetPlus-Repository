@@ -10,6 +10,8 @@ from datetime import date #Para poder fazer o calculo da idade dos usuarios, cli
 class Usuario(AbstractUser):
     # O AbstractUser já fornece os campos:
     # username, password (seguro, com hash), email, first_name, last_name, is_staff, etc.
+    email = models.EmailField(unique=True)
+    
     SEXO = [
         ('M', 'Masculino'),
         ('F', 'Feminino'),
@@ -42,10 +44,10 @@ class Usuario(AbstractUser):
         #Verifica o Cpf em algum Cliente
         if Cliente.objects.filter(cpf = self.cpf).exists():
             raise ValidationError({'cpf': 'Este CPF já está cadastrado para um cliente.'})
-    
-        #Verifica o Cpf em algum Usuario 
-        if Usuario.objects.filter(cpf = self.cpf).exclude(pk = self.pk).exists():
-            raise ValidationError({'cpf': 'Este CPF já está cadastrado para outro usuário.'})
+        
+        #Verifica o Email (ignorando maiúsculas/minúsculas)
+        if self.email and Cliente.objects.filter(email__iexact=self.email).exists():
+            raise ValidationError({'email': 'Cliente com este Email já existe.'})
 
     def __str__(self):
         return self.username
@@ -96,11 +98,18 @@ class Cliente(models.Model):
     def clean(self):
         super().clean()
 
-        if Cliente.objects.filter(cpf = self.cpf).exists():
-            raise ValidationError({'cpf': 'Este CPF já está cadastrado para um cliente.'})
-    
-        if Usuario.objects.filter(cpf = self.cpf).exclude(pk = self.pk).exists():
+        # 1. Validação do CPF
+        if Usuario.objects.filter(cpf = self.cpf).exists():
             raise ValidationError({'cpf': 'Este CPF já está cadastrado para outro usuário.'})
+        if Cliente.objects.filter(cpf = self.cpf).exclude(pk = self.pk).exists():
+            raise ValidationError({'cpf': 'Este CPF já está cadastrado para um cliente.'})
+        
+        # 2. Validação do Email (ignorando maiúsculas/minúsculas)
+        if self.email:
+            if Usuario.objects.filter(email__iexact=self.email).exists():
+                raise ValidationError({'email': 'Este e-mail já está cadastrado para um usuário do sistema.'})
+            if Cliente.objects.filter(email__iexact=self.email).exclude(pk=self.pk).exists():
+                raise ValidationError({'email': 'Cliente com este Email já existe.'})
 
     def __str__(self):
         return self.nome
