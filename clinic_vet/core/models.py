@@ -10,6 +10,8 @@ from datetime import date #Para poder fazer o calculo da idade dos usuarios, cli
 class Usuario(AbstractUser):
     # O AbstractUser já fornece os campos:
     # username, password (seguro, com hash), email, first_name, last_name, is_staff, etc.
+    email = models.EmailField(unique=True)
+    
     SEXO = [
         ('M', 'Masculino'),
         ('F', 'Feminino'),
@@ -18,7 +20,7 @@ class Usuario(AbstractUser):
     
     cpf = models.CharField(max_length=11, unique=True, blank=False, null=False)
     telefone = models.CharField(max_length=15)
-    data_nascimento = models.DateField(null=False, blank=False)
+    data_nascimento = models.DateField(null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
     endereco = models.TextField(blank=False, null=False)
     
@@ -35,6 +37,18 @@ class Usuario(AbstractUser):
             )
         return idade_calculada
     
+    #Função para comparar o Cpf cadastrado com o dos outros
+    def clean(self):
+        super().clean()
+
+        #Verifica o Cpf em algum Cliente
+        if Cliente.objects.filter(cpf = self.cpf).exists():
+            raise ValidationError({'cpf': 'Este CPF já está cadastrado para um cliente.'})
+        
+        #Verifica o Email (ignorando maiúsculas/minúsculas)
+        if self.email and Cliente.objects.filter(email__iexact=self.email).exists():
+            raise ValidationError({'email': 'Cliente com este Email já existe.'})
+
     def __str__(self):
         return self.username
 
@@ -48,19 +62,26 @@ class Cliente(models.Model):
     ]
     
     ESTADO_CIVIL = [
-        ('S', 'Solteiro (a)'),
-        ('C', 'Casado (a)'),
-        ('D', 'Divorciado (a)'),
-        ('V', 'Viúvo (a)'),
+        ('S', 'Solteiro(a)'),
+        ('C', 'Casado(a)'),
+        ('D', 'Divorciado(a)'),
+        ('V', 'Viúvo(a)'),
+    ]
+
+    ATENDIMENTO = [
+        ('W', 'Whatsapp'),
+        ('E', 'Email'),
+        ('A', 'Ambos'),
     ]
     
     nome = models.CharField(max_length=100)
     email = models.EmailField()
-    cpf = models.CharField(max_length=11, blank=False, null=False)
+    cpf = models.CharField(max_length=11, unique=True, blank=False, null=False)
     telefone = models.CharField(max_length=15)
     data_nascimento = models.DateField(null=False, blank=False)
     sexo = models.CharField(max_length=1, choices=SEXO)
     estado_civil = models.CharField(max_length=1, choices=ESTADO_CIVIL)
+    preferencia_de_atendimento = models.CharField(max_length=1, choices=ATENDIMENTO)
     endereco = models.TextField(blank=False, null=False)
 
     @property
@@ -73,6 +94,22 @@ class Cliente(models.Model):
             (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
             )
         return idade_calculada
+
+    def clean(self):
+        super().clean()
+
+        # 1. Validação do CPF
+        if Usuario.objects.filter(cpf = self.cpf).exists():
+            raise ValidationError({'cpf': 'Este CPF já está cadastrado para outro usuário.'})
+        if Cliente.objects.filter(cpf = self.cpf).exclude(pk = self.pk).exists():
+            raise ValidationError({'cpf': 'Este CPF já está cadastrado para um cliente.'})
+        
+        # 2. Validação do Email (ignorando maiúsculas/minúsculas)
+        if self.email:
+            if Usuario.objects.filter(email__iexact=self.email).exists():
+                raise ValidationError({'email': 'Este e-mail já está cadastrado para um usuário do sistema.'})
+            if Cliente.objects.filter(email__iexact=self.email).exclude(pk=self.pk).exists():
+                raise ValidationError({'email': 'Cliente com este Email já existe.'})
 
     def __str__(self):
         return self.nome
