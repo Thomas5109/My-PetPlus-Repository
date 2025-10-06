@@ -1,7 +1,43 @@
 from django import forms
-from .models import Consulta
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from .models import Usuario, Cliente, Consulta
+
+
 # isso aqui ta sem utilidade para falar a real (vai na parte de Views.py, resumindo isso seria usado la)
 # Apesar de ter uma modificacao na onde tem a seta, porque o gemini me disse que isso poderia virar bug no futuro 
+
+# --- Formulário para a página de CRIAÇÃO de usuário ---
+class UsuarioAdminCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = Usuario
+        # Adicione os campos que você quer na tela de criação
+        fields = ('username', 'email', 'cpf', 'telefone')
+        widgets = {
+            'cpf': forms.TextInput(attrs={'data-mask': '000.000.000-00'}),
+            'telefone': forms.TextInput(attrs={'data-mask': '(00) 0000[0]-0000'}),
+        }
+
+# --- Formulário para a página de EDIÇÃO de usuário ---
+class UsuarioAdminChangeForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = Usuario
+        fields = '__all__'
+        widgets = {
+            'cpf': forms.TextInput(attrs={'data-mask': '000.000.000-00'}),
+            'telefone': forms.TextInput(attrs={'data-mask': '(00) 0000[0]-0000'}),
+        }
+
+# --- Formulário para o modelo Cliente (o seu já estava correto) ---
+class ClienteAdminForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = '__all__'
+        widgets = {
+            'cpf': forms.TextInput(attrs={'data-mask': '000.000.000-00'}),
+            'telefone': forms.TextInput(attrs={'data-mask': '(00) 0000[0]-0000'}),
+        }
+
+
 class ConsultaForm(forms.ModelForm):
     class Meta:
         model = Consulta
