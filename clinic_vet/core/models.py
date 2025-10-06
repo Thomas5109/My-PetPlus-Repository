@@ -8,10 +8,26 @@ from datetime import date #Para poder fazer o calculo da idade dos usuarios, cli
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from .validators import validate_cpf, validate_telefone #Para poder fazer o calculo da idade dos usuarios, clientes e animais
 
-# Este modelo agora gerencia logins e senhas de forma segura
-# Parte dos funcionarios
-class Usuario(AbstractUser):
+class CalculaIdadeMixin:
+    """
+    Mixin que adiciona uma propriedade 'idade' calculada
+    a qualquer modelo que tenha um campo 'data_nascimento'.
+    """
+    @property
+    def idade(self):
+        if not hasattr(self, 'data_nascimento') or not self.data_nascimento:
+            return 0
+
+        hoje = date.today()
+        # Lógica de cálculo (mantida)
+        idade_calculada = hoje.year - self.data_nascimento.year - (
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+        )
+        return idade_calculada
+
+class Usuario(AbstractUser, CalculaIdadeMixin):
     # O AbstractUser já fornece os campos:
     # username, password (seguro, com hash), email, first_name, last_name, is_staff, etc.
     email = models.EmailField(unique=True)
@@ -22,24 +38,19 @@ class Usuario(AbstractUser):
         ('O', 'Outros'),
     ]
     
-    cpf = models.CharField(max_length=11, unique=True, blank=False, null=False)
     telefone = models.CharField(max_length=15)
     data_nascimento = models.DateField(null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
     endereco = models.TextField(blank=False, null=False)
-    
-    @property
-    def idade(self):
-        #Se não tiver data de nascimento, retorna 0
-        if not self.data_nascimento:
-            return 0
-        
-        #Calculo mirabolante para calcular a idade
-        hoje = date.today()
-        idade_calculada = hoje.year - self.data_nascimento.year -(
-            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
-            )
-        return idade_calculada
+    cpf = models.CharField(
+        max_length=14,  # Aumente para 14 para acomodar a máscara (ex: 123.456.789-00)
+        unique=True,
+        blank=True,
+        null=True,
+        validators=[validate_cpf] # <--- ADICIONE ESTA LINHA
+    )
+    # ...
+    # Ajuste o max_length do telefone para a máscara (ex: (11) 98765-4321)
     
     #Função para comparar o Cpf cadastrado com o dos outros
     def clean(self):
@@ -57,7 +68,7 @@ class Usuario(AbstractUser):
         return self.username
 
 # Parte dos clientes
-class Cliente(models.Model):
+class Cliente(models.Model, CalculaIdadeMixin):
     
     SEXO = [
         ('M', 'Masculino'),
@@ -88,16 +99,14 @@ class Cliente(models.Model):
     preferencia_de_atendimento = models.CharField(max_length=1, choices=ATENDIMENTO)
     endereco = models.TextField(blank=False, null=False)
 
-    @property
-    def idade(self):
-        if not self.data_nascimento:
-            return 0
-                
-        hoje = date.today()
-        idade_calculada = hoje.year - self.data_nascimento.year -(
-            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
-            )
-        return idade_calculada
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        blank=True,
+        null=True,
+        validators=[validate_cpf] # <--- ADICIONE ESTA LINHA
+    )
+    # Ajuste o max_length do telefone para a máscara
 
     def clean(self):
         super().clean()
@@ -119,7 +128,7 @@ class Cliente(models.Model):
         return self.nome
     
 # Tabelinha de animais
-class Animal(models.Model):
+class Animal(models.Model, CalculaIdadeMixin):
     ESPECIES = [
         ('C', 'Cachorro'),
         ('G', 'Gato'),
@@ -139,20 +148,6 @@ class Animal(models.Model):
     peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO)
     observacoes = models.TextField(blank=True)
-
-    @property
-    def idade(self):
-        if not self.data_nascimento:
-            return 0
-                
-        hoje = date.today()
-        idade_calculada = hoje.year - self.data_nascimento.year -(
-            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
-            )
-        return idade_calculada
-
-    def __str__(self):
-        return f"{self.nome} ({self.especie})"
     
 class DocumentoAnimal(models.Model):
     """

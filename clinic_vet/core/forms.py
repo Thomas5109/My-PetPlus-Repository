@@ -10,12 +10,18 @@ from .models import Usuario, Cliente, Consulta
 class UsuarioAdminCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Usuario
-        # Adicione os campos que você quer na tela de criação
-        fields = ('username', 'email', 'cpf', 'telefone')
+        # CORREÇÃO: Definimos explicitamente TODOS os campos que queremos na tela de criação.
+        # Isso inclui os de senha, que estavam faltando
+        fields = UserCreationForm.Meta.fields + (
+            'first_name', 'last_name', 'email', 'cpf', 'telefone',
+            'data_nascimento', 'sexo', 'endereco'  # <-- CAMPOS ADICIONADOS AQUI
+        )        
         widgets = {
             'cpf': forms.TextInput(attrs={'data-mask': '000.000.000-00'}),
             'telefone': forms.TextInput(attrs={'data-mask': '(00) 0000[0]-0000'}),
         }
+# O resto do seu arquivo forms.py (UsuarioAdminChangeForm, ClienteAdminForm, etc.)
+# está correto e não precisa de nenhuma alteração.
 
 # --- Formulário para a página de EDIÇÃO de usuário ---
 class UsuarioAdminChangeForm(UserChangeForm):
@@ -27,7 +33,7 @@ class UsuarioAdminChangeForm(UserChangeForm):
             'telefone': forms.TextInput(attrs={'data-mask': '(00) 0000[0]-0000'}),
         }
 
-# --- Formulário para o modelo Cliente (o seu já estava correto) ---
+# --- Formulário para o modelo Cliente ---
 class ClienteAdminForm(forms.ModelForm):
     class Meta:
         model = Cliente
