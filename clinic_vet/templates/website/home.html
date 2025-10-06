@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="hero-section text-center">
+    <h1 class="display-4">Cuidando de quem te faz feliz</h1>
+    <p class="lead my-4">Agendamento de consultas e acompanhamento completo para o seu pet com a facilidade que você merece.</p>
+    <a class="btn btn-warning btn-lg fw-bold" href="{% url 'agendar_consulta' %}" role="button">Agende uma Consulta</a>
+</div>
+
+<div class="container text-center my-5 py-5">
+    <h2 class="display-6 fw-bold">Nossos Serviços</h2>
+    <hr class="w-25 mx-auto mb-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card service-card p-4">
+                <i class="bi bi-clipboard2-pulse-fill fs-1 text-warning"></i>
+                <h4 class="card-title my-3">Consultas Gerais</h4>
+                <p class="card-text">Check-ups completos e diagnóstico para garantir a saúde contínua do seu pet.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card service-card p-4">
+                <i class="bi bi-eyedropper fs-1 text-warning"></i>
+                <h4 class="card-title my-3">Vacinação</h4>
+                <p class="card-text">Mantenha seu companheiro protegido com nosso calendário de vacinação completo.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card service-card p-4">
+                <i class="bi bi-bandaid-fill fs-1 text-warning"></i>
+                <h4 class="card-title my-3">Pequenas Cirurgias</h4>
+                <p class="card-text">Procedimentos cirúrgicos realizados com segurança e cuidado pela nossa equipe.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

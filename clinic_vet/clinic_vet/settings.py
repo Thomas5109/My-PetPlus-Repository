@@ -17,7 +17,7 @@ import os
 AUTH_USER_MODEL = 'core.Usuario'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core'
+    'core',
+    'website'
+
 ]
 
 MIDDLEWARE = [
@@ -82,6 +84,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'TIMEOUT': 20,  # Adiciona uma espera de 20 segundos
+
     }
 }
 
@@ -122,10 +126,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR,'static')
 STATIC_URL = 'static/'
 
-MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+# 1. DIZ AO DJANGO ONDE ENCONTRAR SUA PASTA 'static' DE DESENVOLVIMENTO
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# 2. DEFINE UMA PASTA DIFERENTE PARA OS ARQUIVOS DE PRODUÇÃO
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 # Default primary key field type

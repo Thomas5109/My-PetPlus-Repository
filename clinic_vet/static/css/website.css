@@ -1,0 +1,65 @@
+/* static/css/website.css */
+
+/* Adiciona um espaço no topo da página para a barra de navegação fixa */
+body {
+    padding-top: 56px;
+}
+
+/* --- Seção Principal (Hero) --- */
+.hero-section {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.pexels.com/photos/5731866/pexels-photo-5731866.jpeg');
+    background-size: cover;
+    background-position: center;
+    padding: 10rem 0; /* Aumenta o espaçamento vertical */
+    color: white; /* Cor do texto para branco para contrastar com o fundo */
+}
+
+.hero-section h1 {
+    font-weight: 700; /* Deixa o título mais forte */
+}
+
+/* --- Barra de Navegação --- */
+.navbar {
+    /* Fundo escuro semitransparente permanente */
+    background-color: rgba(0, 0, 0, 0.5) !important; 
+
+    /* Efeito de "vidro fosco" para desfocar o conteúdo que passa por trás */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* Para compatibilidade com Safari */
+}
+
+/* --- Seção de Serviços --- */
+.service-card {
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px); /* Efeito de 'levantar' o card */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Estilo do Botão Flutuante do WhatsApp --- */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 40px;
+    right: 40px;
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 2px 2px 3px #999;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.1); /* Efeito de zoom ao passar o mouse */
+    color: #FFF;
+}
