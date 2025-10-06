@@ -150,6 +150,27 @@ class Animal(models.Model):
     def __str__(self):
         return f"{self.nome} ({self.especie})"
     
+class DocumentoAnimal(models.Model):
+    """
+    Armazena documentos e arquivos relacionados a um animal específico,
+    atendendo aos critérios da nova história de usuário.
+    """
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='documentos', verbose_name="Animal")
+    titulo = models.CharField(max_length=100, help_text="Ex: Hemograma completo - Clínica X", verbose_name="Título/Descrição")
+    data_documento = models.DateField(verbose_name="Data do Documento")
+
+     # O upload_to cria uma pasta 'documentos_animais' dentro do seu diretório de media
+    arquivo = models.FileField(upload_to='documentos_animais/', verbose_name="Arquivo")
+
+    def __str__(self):
+        return f"{self.titulo} ({self.animal.nome})"
+    
+    class Meta:
+        verbose_name = "Documento do Animal"
+        verbose_name_plural = "Documentos dos Animais"
+        # Ordena os documentos mais recentes primeiro
+        ordering = ['-data_documento']
+
 # Agenda consulta
 class Consulta(models.Model):
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE)

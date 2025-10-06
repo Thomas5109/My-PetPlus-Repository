@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Usuario, Cliente, Animal, Consulta, Turno, HorarioTrabalho
+from .models import Usuario, Cliente, Animal, DocumentoAnimal, Consulta, Turno, HorarioTrabalho
 
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
 from django.urls import reverse
+
+from django.utils.html import format_html
+import os 
 
 # --- Ações customizadas para Ativar/Desativar ---
 @admin.action(description="Ativar usuários selecionados")
@@ -99,8 +101,76 @@ class TurnoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'hora_inicio', 'hora_fim')
     search_fields = ('nome',)
 
+# --- INÍCIO DA NOVA SEÇÃO: ADMINISTRAÇÃO DE ANIMAIS E SEUS DOCUMENTOS ---
+
+# Responsável por mostrar os documentos DENTRO da página de um Animal.
+class DocumentoAnimalInline(admin.TabularInline):
+    model = DocumentoAnimal
+    extra = 1 # Mostra 1 formulário extra para adicionar um novo documento.
+    fields = ('titulo', 'data_documento', 'arquivo')
+
+# Responsável por criar uma PÁGINA SEPARADA para gerenciar TODOS os documentos.
+@admin.register(DocumentoAnimal)
+class DocumentoAnimalAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'animal', 'data_documento', 'visualizar_arquivo')
+    search_fields = ('titulo', 'animal__nome')
+    list_filter = ('animal__especie', 'data_documento')
+    autocomplete_fields = ['animal']
+
+ # Método que gera o link para o arquivo
+    @admin.display(description="Arquivo")
+    def visualizar_arquivo(self, obj):
+        # Verifica se o objeto DocumentoAnimal tem um arquivo associado
+        if obj.arquivo:
+            # Pega o caminho do arquivo e a URL
+            file_url = obj.arquivo.url
+            # Pega a extensão do arquivo para ver se é uma imagem
+            file_extension = os.path.splitext(file_url)[1].lower()
+            
+            # Se for uma imagem comum, mostra uma miniatura
+            if file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
+                return format_html(
+                    '<a href="{}" target="_blank">'
+                    '<img src="{}" style="max-height: 60px; max-width: 100px;" />'
+                    '</a>',
+                    file_url,
+                    file_url
+                )
+            # Se for outro tipo de arquivo (PDF, etc.), mostra um link de texto
+            else:
+                return format_html(
+                    '<a href="{}" target="_blank">Ver/Baixar Arquivo</a>',
+                    file_url
+                )
+        # Se não houver arquivo, informa o usuário
+        return "Sem arquivo"
+
+# A CLASSE ADMIN DE ANIMAL, QUE USA AS OUTRAS DUAS
+@admin.register(Animal)
+class AnimalAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'dono', 'especie', 'raca', 'documentos')
+    search_fields = ('nome', 'dono__nome') # Permite buscar pelo nome do pet ou do dono.
+    list_filter = ('especie',)
+    inlines = [DocumentoAnimalInline] # Aqui acontece a mágica!
+
+    #Link do documento
+    @admin.display(description="Documentos")
+    def documentos(self, obj):
+        
+        #Conta o numero de docs (obj) que o animal tem
+        count = obj.documentos.count()
+
+        if count == 0:
+            return "Nenhum"        
+        # Constrói a URL para a lista de DocumentoAnimal, filtrando pelo ID do animal atual
+        url = (
+            reverse("admin:core_documentoanimal_changelist")
+            + f"?animal__id__exact={obj.id}"
+        )
+        # Cria o link HTML
+        return format_html('<a href="{}">Ver ({})</a>', url, count)
+
 # --- Registro dos Modelos ---
 admin.site.register(Usuario, UsuarioAdmin)
 admin.site.register(Cliente)
-admin.site.register(Animal)
 admin.site.register(Consulta)
