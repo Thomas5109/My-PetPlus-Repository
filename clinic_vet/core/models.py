@@ -5,6 +5,10 @@ from django.contrib.auth.models import AbstractUser
 
 from datetime import date #Para poder fazer o calculo da idade dos usuarios, clientes e animais
 
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+
 # Este modelo agora gerencia logins e senhas de forma segura
 # Parte dos funcionarios
 class Usuario(AbstractUser):
@@ -170,6 +174,20 @@ class DocumentoAnimal(models.Model):
         verbose_name_plural = "Documentos dos Animais"
         # Ordena os documentos mais recentes primeiro
         ordering = ['-data_documento']
+
+# VINCULE A FUNÇÃO AO SINAL post_delete DO MODELO DocumentoAnimal
+@receiver(post_delete, sender=DocumentoAnimal)
+def deletar_arquivo_documento(sender, instance, **kwargs):
+    """
+    Esta função "ouve" o sinal de exclusão do DocumentoAnimal
+    e apaga o arquivo associado.
+    """
+    # A variável 'instance' é o objeto que acabou de ser deletado.
+    # O 'if instance.arquivo' garante que não haverá erro se não houver arquivo.
+    if instance.arquivo:
+        # O método .delete() do campo de arquivo cuida da exclusão do arquivo físico.
+        # save=False impede que o modelo tente se salvar novamente, o que não é necessário.
+        instance.arquivo.delete(save=False)
 
 # Agenda consulta
 class Consulta(models.Model):
